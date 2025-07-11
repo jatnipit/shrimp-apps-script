@@ -1,159 +1,111 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>สมัครสมาชิก</title>
-    <style>
-      body,
-      html {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        font-family: Arial, sans-serif;
-        background: #f5f5f5;
-      }
-      .page-container {
-        display: none;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        text-align: center;
-        padding: 20px;
-        background: white;
-      }
-      .status-view {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        font-size: 18px;
-        color: #666;
-      }
-      h2 {
-        color: #333;
-        margin-bottom: 12px;
-      }
-      p {
-        color: #666;
-        margin-top: 0;
-      }
-      .register-btn {
-        background: #4caf50;
-        color: white;
-        border: none;
-        padding: 15px 30px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 18px;
-        margin-top: 20px;
-        border: 1px solid #4caf50;
-      }
-      .register-btn:disabled {
-        background: #ccc;
-        cursor: not-allowed;
-        border-color: #ccc;
-      }
-      .register-btn:hover:not(:disabled) {
-        background: #45a049;
-      }
-    </style>
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  </head>
-  <body>
-    <div id="statusView" class="status-view">กำลังโหลด...</div>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Restaurant App</title>
+  <style>
+    body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: #f5f5f5; height: 100vh; overflow: hidden; }
+    .loading, .register-page { display: flex; justify-content: center; align-items: center; height: 100vh; text-align: center; }
+    .loading { font-size: 18px; color: #666; }
+    .register-page { flex-direction: column; padding: 20px; background: white; }
+    .register-page h2 { color: #333; margin-bottom: 20px; }
+    .register-btn { background: #4CAF50; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-size: 16px; cursor: pointer; }
+    .register-btn:disabled { background-color: #ccc; }
+    iframe { border: none; width: 100%; height: 100%; }
+  </style>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+  <div id="viewContainer">
+    <div class="loading">กำลังโหลด...</div>
+  </div>
 
-    <div id="registerPage" class="page-container">
-      <h2>สมัครสมาชิก</h2>
-      <p>คุณยังไม่ได้เป็นสมาชิก กรุณากดปุ่มเพื่อสมัคร</p>
-      <button id="registerButton" class="register-btn" onclick="registerUser()">
-        ยืนยันการสมัครสมาชิก
-      </button>
-    </div>
+<script>
+    const LIFF_ID = "2007677261-ZqXNg6de";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwYDbXDHoD2YICngs9UwMw438Ujx0u0Z_X7AXokuYCd2xBmH1V-aeJxWn7VfXh0oxV9Pg/exec";
+    const viewContainer = document.getElementById('viewContainer');
+    let userId = null;
 
-    <script>
-      const LIFF_ID = "2007677261-m1Qn7ZLV";
-      const GAS_URL =
-        "https://script.google.com/macros/s/AKfycbwYDbXDHoD2YICngs9UwMw438Ujx0u0Z_X7AXokuYCd2xBmH1V-aeJxWn7VfXh0oxV9Pg/exec";
-
-      let userId = null;
-      const registerButton = document.getElementById("registerButton");
-      const statusView = document.getElementById("statusView");
-      const registerPage = document.getElementById("registerPage");
-
-      function showRegisterPage() {
-        statusView.style.display = "none";
-        registerPage.style.display = "flex";
-      }
-
-      function showStatus(message) {
-        registerPage.style.display = "none";
-        statusView.style.display = "flex";
-        statusView.textContent = message;
-      }
-
-      function registerUser() {
-        if (!userId) {
-          alert("ไม่พบข้อมูลผู้ใช้ กรุณาลองใหม่");
-          return;
+    async function callApi(action, data = {}) {
+        const payload = { action, userId, ...data };
+        const response = await fetch(GAS_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
         }
+        return await response.json();
+    }
+    
+    function showRegisterPage() {
+        viewContainer.innerHTML = `
+            <div class="register-page">
+                <h2>สมัครสมาชิก</h2>
+                <button class="register-btn" onclick="registerUser()">ยืนยันการสมัคร</button>
+            </div>`;
+    }
 
+    function showMenuPage() {
+        window.location.href = 'userMenuWrapper.html';
+    }
+
+    async function registerUser() {
+        const registerButton = document.querySelector('.register-btn');
         registerButton.disabled = true;
-        registerButton.textContent = "กำลังดำเนินการ...";
+        registerButton.textContent = 'กำลังสมัคร...';
 
-        // เรียก GAS เพื่ออัปเดต Role
-        fetch(`${GAS_URL}?action=updateRole&userId=${userId}`)
-          .then((response) => {
-            if (!response.ok) throw new Error("Network response was not ok");
-            return response.text();
-          })
-          .then((text) => {
-            if (text.trim() === "OK") {
-              // 1. แสดง Pop-up (alert)
-              alert("สมัครสมาชิกสำเร็จ!");
-
-              // 2. แสดงข้อความบนหน้าจอ (เผื่อ alert โดนปิด)
-              showStatus("สมัครสำเร็จ! กำลังปิดหน้านี้...");
-
-              // 3. รอ 3 วินาทีแล้วปิดหน้าต่าง LIFF
-              setTimeout(() => {
-                liff.closeWindow();
-              }, 3000);
+        try {
+            const result = await callApi('updateRole');
+            if (result.status === 'success') {
+                alert('สมัครสมาชิกสำเร็จ!');
+                showMenuPage();
             } else {
-              throw new Error("Registration failed on server");
+                throw new Error(result.message || 'Registration failed on server');
             }
-          })
-          .catch((err) => {
-            console.error("Registration error:", err);
-            alert("เกิดข้อผิดพลาดในการสมัครสมาชิก");
+        } catch (err) {
+            console.error('Registration error:', err);
+            alert('เกิดข้อผิดพลาดในการสมัครสมาชิก');
             registerButton.disabled = false;
-            registerButton.textContent = "ยืนยันการสมัครสมาชิก";
-          });
-      }
+            registerButton.textContent = 'ยืนยันการสมัคร';
+        }
+    }
 
-      // เริ่มต้น LIFF
-      window.addEventListener("load", () => {
-        liff
-          .init({ liffId: LIFF_ID })
-          .then(() => {
-            if (!liff.isLoggedIn()) {
-              liff.login();
-              return;
+    async function checkUserRole() {
+        try {
+            const result = await callApi('getUserRole');
+            if (result.status === 'success') {
+                if (result.role === 'undefined') {
+                    showRegisterPage();
+                } else {
+                    showMenuPage();
+                }
+            } else {
+                 throw new Error(result.message || 'Failed to get user role');
             }
-            return liff.getProfile();
-          })
-          .then((profile) => {
-            if (!profile) return;
+        } catch (err) {
+            console.error('Error checking role:', err);
+            viewContainer.innerHTML = '<div class="loading">เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์</div>';
+        }
+    }
+
+    window.addEventListener('load', async () => {
+        try {
+            await liff.init({ liffId: LIFF_ID });
+            if (!liff.isLoggedIn()) {
+                liff.login();
+                return;
+            }
+            const profile = await liff.getProfile();
             userId = profile.userId;
-            showRegisterPage();
-          })
-          .catch((err) => {
-            console.error("LIFF error:", err);
-            // showStatus("เกิดข้อผิดพลาด กรุณาเปิดในแอป LINE");
-            showStatus(err.message);
-          });
-      });
-    </script>
-  </body>
+            await checkUserRole();
+        } catch (err) {
+            console.error('LIFF Initialization error:', err);
+            viewContainer.innerHTML = '<div class="loading">เกิดข้อผิดพลาด กรุณาเปิดในแอป LINE</div>';
+        }
+    });
+</script>
+</body>
 </html>
