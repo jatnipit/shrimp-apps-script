@@ -12,7 +12,6 @@
     .register-page h2 { color: #333; margin-bottom: 20px; }
     .register-btn { background: #4CAF50; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-size: 16px; cursor: pointer; }
     .register-btn:disabled { background-color: #ccc; }
-    iframe { border: none; width: 100%; height: 100%; }
   </style>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
@@ -48,10 +47,6 @@
             </div>`;
     }
 
-    function showMenuPage() {
-        window.location.href = 'userMenuWrapper.html';
-    }
-
     async function registerUser() {
         const registerButton = document.querySelector('.register-btn');
         registerButton.disabled = true;
@@ -61,7 +56,7 @@
             const result = await callApi('updateRole');
             if (result.status === 'success') {
                 alert('สมัครสมาชิกสำเร็จ!');
-                showMenuPage();
+                setTimeout(() => liff.closeWindow(), 1500);
             } else {
                 throw new Error(result.message || 'Registration failed on server');
             }
@@ -80,7 +75,9 @@
                 if (result.role === 'undefined') {
                     showRegisterPage();
                 } else {
-                    showMenuPage();
+                    alert('คุณเป็นสมาชิกอยู่แล้ว');
+                    viewContainer.innerHTML = '<div class="loading">คุณเป็นสมาชิกอยู่แล้ว</div>';
+                    setTimeout(() => liff.closeWindow(), 1500);
                 }
             } else {
                  throw new Error(result.message || 'Failed to get user role');
