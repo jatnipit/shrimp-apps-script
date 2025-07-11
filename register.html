@@ -1,108 +1,146 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Restaurant App</title>
-  <style>
-    body { margin: 0; padding: 0; font-family: Arial, sans-serif; background: #f5f5f5; height: 100vh; overflow: hidden; }
-    .loading, .register-page { display: flex; justify-content: center; align-items: center; height: 100vh; text-align: center; }
-    .loading { font-size: 18px; color: #666; }
-    .register-page { flex-direction: column; padding: 20px; background: white; }
-    .register-page h2 { color: #333; margin-bottom: 20px; }
-    .register-btn { background: #4CAF50; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-size: 16px; cursor: pointer; }
-    .register-btn:disabled { background-color: #ccc; }
-  </style>
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-</head>
-<body>
-  <div id="viewContainer">
-    <div class="loading">กำลังโหลด...</div>
-  </div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Restaurant App</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+        height: 100vh;
+        overflow: hidden;
+      }
+      .loading,
+      .register-page {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        text-align: center;
+      }
+      .loading {
+        font-size: 18px;
+        color: #666;
+      }
+      .register-page {
+        flex-direction: column;
+        padding: 20px;
+        background: white;
+      }
+      .register-page h2 {
+        color: #333;
+        margin-bottom: 20px;
+      }
+      .register-btn {
+        background: #4caf50;
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      .register-btn:disabled {
+        background-color: #ccc;
+      }
+    </style>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  </head>
+  <body>
+    <div id="viewContainer">
+      <div class="loading">กำลังโหลด...</div>
+    </div>
 
-<script>
-    const LIFF_ID = "2007677261-m1Qn7ZLV";
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwYDbXDHoD2YICngs9UwMw438Ujx0u0Z_X7AXokuYCd2xBmH1V-aeJxWn7VfXh0oxV9Pg/exec";
-    const viewContainer = document.getElementById('viewContainer');
-    let userId = null;
+    <script>
+      const LIFF_ID = "2007677261-m1Qn7ZLV";
+      const GAS_URL =
+        "https://script.google.com/macros/s/AKfycbxLa7WBh9jYvPz_ntanayaBY15puHWSV-cy-K3-UEAXTOIS8Z4eebecWXkJ2mUh2wwVEQ/exec";
+      const viewContainer = document.getElementById("viewContainer");
+      let userId = null;
 
-    async function callApi(action, data = {}) {
+      async function callApi(action, data = {}) {
         const payload = { action, userId, ...data };
         const response = await fetch(GAS_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
         });
         if (!response.ok) {
-            throw new Error('Network response was not ok');
+          throw new Error("Network response was not ok");
         }
         return await response.json();
-    }
-    
-    function showRegisterPage() {
+      }
+
+      function showRegisterPage() {
         viewContainer.innerHTML = `
             <div class="register-page">
                 <h2>สมัครสมาชิก</h2>
                 <button class="register-btn" onclick="registerUser()">ยืนยันการสมัคร</button>
             </div>`;
-    }
+      }
 
-    async function registerUser() {
-        const registerButton = document.querySelector('.register-btn');
+      async function registerUser() {
+        const registerButton = document.querySelector(".register-btn");
         registerButton.disabled = true;
-        registerButton.textContent = 'กำลังสมัคร...';
+        registerButton.textContent = "กำลังสมัคร...";
 
         try {
-            const result = await callApi('updateRole');
-            if (result.status === 'success') {
-                alert('สมัครสมาชิกสำเร็จ!');
-                setTimeout(() => liff.closeWindow(), 1500);
+          const result = await callApi("updateRole");
+          if (result.status === "success") {
+            alert("สมัครสมาชิกสำเร็จ!");
+            setTimeout(() => liff.closeWindow(), 1500);
+          } else {
+            throw new Error(result.message || "Registration failed on server");
+          }
+        } catch (err) {
+          console.error("Registration error:", err);
+          alert("เกิดข้อผิดพลาดในการสมัครสมาชิก");
+          registerButton.disabled = false;
+          registerButton.textContent = "ยืนยันการสมัคร";
+        }
+      }
+
+      async function checkUserRole() {
+        try {
+          const result = await callApi("getUserRole");
+          if (result.status === "success") {
+            if (result.role === "undefined") {
+              showRegisterPage();
             } else {
-                throw new Error(result.message || 'Registration failed on server');
+              alert("คุณเป็นสมาชิกอยู่แล้ว");
+              viewContainer.innerHTML =
+                '<div class="loading">คุณเป็นสมาชิกอยู่แล้ว</div>';
+              setTimeout(() => liff.closeWindow(), 1500);
             }
+          } else {
+            throw new Error(result.message || "Failed to get user role");
+          }
         } catch (err) {
-            console.error('Registration error:', err);
-            alert('เกิดข้อผิดพลาดในการสมัครสมาชิก');
-            registerButton.disabled = false;
-            registerButton.textContent = 'ยืนยันการสมัคร';
+          console.error("Error checking role:", err);
+          viewContainer.innerHTML =
+            '<div class="loading">เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์</div>';
         }
-    }
+      }
 
-    async function checkUserRole() {
+      window.addEventListener("load", async () => {
         try {
-            const result = await callApi('getUserRole');
-            if (result.status === 'success') {
-                if (result.role === 'undefined') {
-                    showRegisterPage();
-                } else {
-                    alert('คุณเป็นสมาชิกอยู่แล้ว');
-                    viewContainer.innerHTML = '<div class="loading">คุณเป็นสมาชิกอยู่แล้ว</div>';
-                    setTimeout(() => liff.closeWindow(), 1500);
-                }
-            } else {
-                 throw new Error(result.message || 'Failed to get user role');
-            }
+          await liff.init({ liffId: LIFF_ID });
+          if (!liff.isLoggedIn()) {
+            liff.login();
+            return;
+          }
+          const profile = await liff.getProfile();
+          userId = profile.userId;
+          await checkUserRole();
         } catch (err) {
-            console.error('Error checking role:', err);
-            viewContainer.innerHTML = '<div class="loading">เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์</div>';
+          console.error("LIFF Initialization error:", err);
+          viewContainer.innerHTML =
+            '<div class="loading">เกิดข้อผิดพลาด กรุณาเปิดในแอป LINE</div>';
         }
-    }
-
-    window.addEventListener('load', async () => {
-        try {
-            await liff.init({ liffId: LIFF_ID });
-            if (!liff.isLoggedIn()) {
-                liff.login();
-                return;
-            }
-            const profile = await liff.getProfile();
-            userId = profile.userId;
-            await checkUserRole();
-        } catch (err) {
-            console.error('LIFF Initialization error:', err);
-            viewContainer.innerHTML = '<div class="loading">เกิดข้อผิดพลาด กรุณาเปิดในแอป LINE</div>';
-        }
-    });
-</script>
-</body>
+      });
+    </script>
+  </body>
 </html>
