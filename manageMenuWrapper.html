@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>จัดการเมนู</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #f5f5f5;
+      }
+      .status {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+      }
+      #statusMsg {
+        font-size: 18px;
+        color: #666;
+      }
+      iframe {
+        border: none;
+        width: 100%;
+        height: 100%;
+        display: none;
+      }
+    </style>
+    <!-- LIFF SDK -->
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  </head>
+  <body>
+    <div id="statusBox" class="status">
+      <div id="statusMsg">กำลังโหลด...</div>
+    </div>
+    <iframe id="manageFrame"></iframe>
+
+    <script>
+      /* ======== CONFIG ======== */
+      const LIFF_ID = "2007677261-69zqOdpv";
+      const GAS_URL =
+        "https://script.google.com/macros/s/AKfycbwYDbXDHoD2YICngs9UwMw438Ujx0u0Z_X7AXokuYCd2xBmH1V-aeJxWn7VfXh0oxV9Pg/exec";
+      const REGISTER_URL =
+        "https://shrimp-restaurant-application4.on.drv.tw/CoopEd68/register.html";
+
+      /* ======== HELPERS ======== */
+      function showStatus(msg) {
+        document.getElementById("statusMsg").textContent = msg;
+      }
+      function showFrame(url) {
+        document.getElementById("statusBox").style.display = "none";
+        const frame = document.getElementById("manageFrame");
+        frame.src = url;
+        frame.style.display = "block";
+      }
+      function redirectToRegister() {
+        window.top.location.href = REGISTER_URL;
+      }
+
+      /* ======== LISTEN FOR CHILD MESSAGES (optional) ======== */
+      window.addEventListener("message", (evt) => {
+        // if (evt.origin !== new URL(GAS_URL).origin) return;
+        // if (evt.data === "redirect-to-register") redirectToRegister();
+
+        if (
+          typeof evt.data === "string" &&
+          evt.data === "redirect-to-register"
+        ) {
+          console.log("Redirect command received from iframe");
+          redirectToRegister();
+        }
+      });
+
+      /* ======== MAIN ======== */
+      window.addEventListener("load", () => {
+        showStatus("กำลังเริ่มต้น...");
+        liff
+          .init({ liffId: LIFF_ID })
+          .then(() => {
+            if (!liff.isLoggedIn()) {
+              showStatus("กำลังเข้าสู่ระบบ LINE...");
+              liff.login();
+              return;
+            }
+            return liff.getProfile();
+          })
+          .then((profile) => {
+            if (!profile) return;
+            const userId = profile.userId;
+
+            const manageUrl = `${GAS_URL}?page=manageMenu&userId=${encodeURIComponent(
+              userId
+            )}`;
+            showFrame(manageUrl);
+          })
+          .catch((err) => {
+            console.error("LIFF error", err);
+            showStatus("เกิดข้อผิดพลาดในการโหลด");
+          });
+      });
+    </script>
+  </body>
+</html>
