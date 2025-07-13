@@ -56,30 +56,65 @@
 
     <script>
       const LIFF_ID = "2007677261-m1Qn7ZLV";
-      const GAS_URL =
-        "https://script.google.com/macros/s/AKfycbzfxqxvLNecdpZPOLJGX5SvKUGyecad8KSjFDLgxJz-WXGRKfKs_snsEGk3xQClgeOM_w/exec";
+      const GAS_URL = "https://script.google.com/macros/s/AKfycbzfxqxvLNecdpZPOLJGX5SvKUGyecad8KSjFDLgxJz-WXGRKfKs_snsEGk3xQClgeOM_w/exec";
       const viewContainer = document.getElementById("viewContainer");
       let userId = null;
 
-      async function callApi(action, data = {}) {
-        const payload = { action, userId, ...data };
-        const response = await fetch(GAS_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
+      // Use GET request for getUserRole to avoid CORS preflight
+      async function getUserRole() {
+        try {
+          const url = `${GAS_URL}?action=getUserRole&userId=${encodeURIComponent(userId)}`;
+          const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          return await response.json();
+        } catch (error) {
+          console.error('Error getting user role:', error);
+          throw error;
         }
-        return await response.json();
+      }
+
+      // Use POST request for updateRole
+      async function updateUserRole() {
+        try {
+          const payload = { 
+            action: "updateRole", 
+            userId: userId 
+          };
+          
+          const response = await fetch(GAS_URL, {
+            method: "POST",
+            headers: { 
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload),
+          });
+          
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          
+          return await response.json();
+        } catch (error) {
+          console.error('Error updating user role:', error);
+          throw error;
+        }
       }
 
       function showRegisterPage() {
         viewContainer.innerHTML = `
-            <div class="register-page">
-                <h2>สมัครสมาชิก</h2>
-                <button class="register-btn" onclick="registerUser()">ยืนยันการสมัคร</button>
-            </div>`;
+          <div class="register-page">
+            <h2>สมัครสมาชิก</h2>
+            <button class="register-btn" onclick="registerUser()">ยืนยันการสมัคร</button>
+          </div>`;
       }
 
       async function registerUser() {
@@ -88,7 +123,7 @@
         registerButton.textContent = "กำลังสมัคร...";
 
         try {
-          const result = await callApi("updateRole");
+          const result = await updateUserRole();
           if (result.status === "success") {
             alert("สมัครสมาชิกสำเร็จ!");
             setTimeout(() => liff.closeWindow(), 1500);
@@ -105,14 +140,13 @@
 
       async function checkUserRole() {
         try {
-          const result = await callApi("getUserRole");
+          const result = await getUserRole();
           if (result.status === "success") {
             if (result.role === "undefined") {
               showRegisterPage();
             } else {
               alert("คุณเป็นสมาชิกอยู่แล้ว");
-              viewContainer.innerHTML =
-                '<div class="loading">คุณเป็นสมาชิกอยู่แล้ว</div>';
+              viewContainer.innerHTML = '<div class="loading">คุณเป็นสมาชิกอยู่แล้ว</div>';
               setTimeout(() => liff.closeWindow(), 1500);
             }
           } else {
@@ -120,8 +154,7 @@
           }
         } catch (err) {
           console.error("Error checking role:", err);
-          viewContainer.innerHTML =
-            '<div class="loading">เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์</div>';
+          viewContainer.innerHTML = '<div class="loading">เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์</div>';
         }
       }
 
@@ -137,8 +170,7 @@
           await checkUserRole();
         } catch (err) {
           console.error("LIFF Initialization error:", err);
-          viewContainer.innerHTML =
-            '<div class="loading">เกิดข้อผิดพลาด กรุณาเปิดในแอป LINE</div>';
+          viewContainer.innerHTML = '<div class="loading">เกิดข้อผิดพลาด กรุณาเปิดในแอป LINE</div>';
         }
       });
     </script>
