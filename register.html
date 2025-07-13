@@ -1,184 +1,169 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Restaurant App</title>
-    <style>
-      body {
-        margin: 0;
-        padding: 0;
-        font-family: Arial, sans-serif;
-        background: #f5f5f5;
-        height: 100vh;
-        overflow: hidden;
-      }
-      .loading,
-      .register-page {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        text-align: center;
-      }
-      .loading {
-        font-size: 18px;
-        color: #666;
-      }
-      .register-page {
-        flex-direction: column;
-        padding: 20px;
-        background: white;
-      }
-      .register-page h2 {
-        color: #333;
-        margin-bottom: 20px;
-      }
-      .register-btn {
-        background: #4caf50;
-        color: white;
-        border: none;
-        padding: 15px 30px;
-        border-radius: 8px;
-        font-size: 16px;
-        cursor: pointer;
-      }
-      .register-btn:disabled {
-        background-color: #ccc;
-      }
-    </style>
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  </head>
-  <body>
-    <div id="viewContainer">
-      <div class="loading">กำลังโหลด...</div>
-    </div>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Restaurant App - Register</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+    h2 {
+      color: #333;
+      margin-bottom: 30px;
+    }
+    .register-btn {
+      background: #4caf50;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      width: 100%;
+    }
+    .register-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .loading {
+      font-size: 18px;
+      color: #666;
+    }
+  </style>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+  <div id="viewContainer">
+    <div class="loading">กำลังโหลด...</div>
+  </div>
 
-    <script>
-      const LIFF_ID = "2007677261-m1Qn7ZLV";
-      const GAS_URL =
-        "https://script.google.com/macros/s/AKfycbzfxqxvLNecdpZPOLJGX5SvKUGyecad8KSjFDLgxJz-WXGRKfKs_snsEGk3xQClgeOM_w/exec";
-      const viewContainer = document.getElementById("viewContainer");
-      let userId = null;
+  <script>
+    const LIFF_ID = "2007677261-m1Qn7ZLV";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzfxqxvLNecdpZPOLJGX5SvKUGyecad8KSjFDLgxJz-WXGRKfKs_snsEGk3xQClgeOM_w/exec";
+    
+    let userId = null;
 
-      // JSONP helper function
-      function makeJSONPRequest(url, callback) {
-        const script = document.createElement('script');
-        const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-        
-        // Create global callback function
-        window[callbackName] = function(data) {
-          callback(null, data);
-          document.head.removeChild(script);
-          delete window[callbackName];
-        };
-        
-        // Handle errors
-        script.onerror = function() {
-          callback(new Error('JSONP request failed'));
-          document.head.removeChild(script);
-          delete window[callbackName];
-        };
-        
-        script.src = url + '&callback=' + callbackName;
-        document.head.appendChild(script);
-      }
+    function makeJSONPRequest(url, callback) {
+      const script = document.createElement("script");
+      const callbackName = "jsonp_callback_" + Math.round(100000 * Math.random());
 
-      // Get user role using JSONP
-      async function getUserRole() {
-        return new Promise((resolve, reject) => {
-          const url = `${GAS_URL}?action=getUserRole&userId=${encodeURIComponent(userId)}`;
-          makeJSONPRequest(url, (error, data) => {
-            if (error) {
-              reject(error);
-            } else {
-              resolve(data);
-            }
-          });
+      window[callbackName] = function(data) {
+        callback(null, data);
+        document.head.removeChild(script);
+        delete window[callbackName];
+      };
+
+      script.onerror = function() {
+        callback(new Error("JSONP request failed"));
+        document.head.removeChild(script);
+        delete window[callbackName];
+      };
+
+      script.src = url + "&callback=" + callbackName;
+      document.head.appendChild(script);
+    }
+
+    async function getUserRole() {
+      return new Promise((resolve, reject) => {
+        const url = `${GAS_URL}?action=getUserRole&userId=${encodeURIComponent(userId)}`;
+        makeJSONPRequest(url, (error, data) => {
+          if (error) reject(error);
+          else resolve(data);
         });
-      }
-
-      // Update user role using JSONP
-      async function updateUserRole() {
-        return new Promise((resolve, reject) => {
-          const url = `${GAS_URL}?action=updateRole&userId=${encodeURIComponent(userId)}`;
-          makeJSONPRequest(url, (error, data) => {
-            if (error) {
-              reject(error);
-            } else {
-              resolve(data);
-            }
-          });
-        });
-      }
-
-      function showRegisterPage() {
-        viewContainer.innerHTML = `
-          <div class="register-page">
-            <h2>สมัครสมาชิก</h2>
-            <button class="register-btn" onclick="registerUser()">ยืนยันการสมัคร</button>
-          </div>`;
-      }
-
-      async function registerUser() {
-        const registerButton = document.querySelector(".register-btn");
-        registerButton.disabled = true;
-        registerButton.textContent = "กำลังสมัคร...";
-
-        try {
-          const result = await updateUserRole();
-          if (result.status === "success") {
-            alert("สมัครสมาชิกสำเร็จ!");
-            setTimeout(() => liff.closeWindow(), 1500);
-          } else {
-            throw new Error(result.message || "Registration failed on server");
-          }
-        } catch (err) {
-          console.error("Registration error:", err);
-          alert("เกิดข้อผิดพลาดในการสมัครสมาชิก");
-          registerButton.disabled = false;
-          registerButton.textContent = "ยืนยันการสมัคร";
-        }
-      }
-
-      async function checkUserRole() {
-        try {
-          const result = await getUserRole();
-          if (result.status === "success") {
-            if (result.role === "undefined") {
-              showRegisterPage();
-            } else {
-              alert("คุณเป็นสมาชิกอยู่แล้ว");
-              viewContainer.innerHTML =
-                '<div class="loading">คุณเป็นสมาชิกอยู่แล้ว</div>';
-              setTimeout(() => liff.closeWindow(), 1500);
-            }
-          } else {
-            throw new Error(result.message || "Failed to get user role");
-          }
-        } catch (err) {
-          console.error("Error checking role:", err);
-          viewContainer.innerHTML =
-            '<div class="loading">เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์</div>';
-        }
-      }
-
-      window.addEventListener("load", async () => {
-        try {
-          await liff.init({ liffId: LIFF_ID });
-          if (!liff.isLoggedIn()) {
-            liff.login();
-            return;
-          }
-          const profile = await liff.getProfile();
-          userId = profile.userId;
-          await checkUserRole();
-        } catch (err) {
-          console.error("LIFF Initialization error:", err);
-          viewContainer.innerHTML =
-            '<div class="loading">เกิดข้อผิดพลาด กรุณาเปิดในแอป LINE</div>';
-        }
       });
-    </script>
-  </body>
+    }
+
+    async function updateUserRole() {
+      return new Promise((resolve, reject) => {
+        const url = `${GAS_URL}?action=updateRole&userId=${encodeURIComponent(userId)}`;
+        makeJSONPRequest(url, (error, data) => {
+          if (error) reject(error);
+          else resolve(data);
+        });
+      });
+    }
+
+    function showRegisterPage() {
+      document.getElementById("viewContainer").innerHTML = `
+        <div class="container">
+          <h2>สมัครสมาชิก</h2>
+          <button class="register-btn" onclick="registerUser()">ยืนยันการสมัคร</button>
+        </div>`;
+    }
+
+    async function registerUser() {
+      const registerButton = document.querySelector(".register-btn");
+      registerButton.disabled = true;
+      registerButton.textContent = "กำลังสมัคร...";
+
+      try {
+        const result = await updateUserRole();
+        if (result.status === "success") {
+          alert("สมัครสมาชิกสำเร็จ!");
+          setTimeout(() => liff.closeWindow(), 1500);
+        } else {
+          throw new Error(result.message || "Registration failed");
+        }
+      } catch (err) {
+        console.error("Registration error:", err);
+        alert("เกิดข้อผิดพลาดในการสมัครสมาชิก");
+        registerButton.disabled = false;
+        registerButton.textContent = "ยืนยันการสมัคร";
+      }
+    }
+
+    async function checkUserRole() {
+      try {
+        const result = await getUserRole();
+        if (result.status === "success") {
+          if (result.role === "undefined") {
+            showRegisterPage();
+          } else {
+            alert("คุณเป็นสมาชิกอยู่แล้ว");
+            document.getElementById("viewContainer").innerHTML = '<div class="loading">คุณเป็นสมาชิกอยู่แล้ว</div>';
+            setTimeout(() => liff.closeWindow(), 1500);
+          }
+        } else {
+          throw new Error(result.message || "Failed to get user role");
+        }
+      } catch (err) {
+        console.error("Error checking role:", err);
+        document.getElementById("viewContainer").innerHTML = '<div class="loading">เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์</div>';
+      }
+    }
+
+    window.addEventListener("load", async () => {
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+        const profile = await liff.getProfile();
+        userId = profile.userId;
+        await checkUserRole();
+      } catch (err) {
+        console.error("LIFF error:", err);
+        document.getElementById("viewContainer").innerHTML = '<div class="loading">เกิดข้อผิดพลาด กรุณาเปิดในแอป LINE</div>';
+      }
+    });
+  </script>
+</body>
 </html>
