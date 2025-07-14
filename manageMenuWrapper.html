@@ -29,6 +29,7 @@
         display: none;
       }
     </style>
+    <!-- LIFF SDK -->
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   </head>
   <body>
@@ -39,14 +40,11 @@
 
     <script>
       /* ======== CONFIG ======== */
-      const LIFF_ID = "2007677261-69zqOdpv"; //
+      const LIFF_ID = "2007677261-69zqOdpv";
       const GAS_URL =
-        "https://script.google.com/macros/s/AKfycbzfxqxvLNecdpZPOLJGX5SvKUGyecad8KSjFDLgxJz-WXGRKfKs_snsEGk3xQClgeOM_w/exec"; //
+        "https://script.google.com/macros/s/AKfycbzfxqxvLNecdpZPOLJGX5SvKUGyecad8KSjFDLgxJz-WXGRKfKs_snsEGk3xQClgeOM_w/exec";
       const REGISTER_URL =
-        "https://jatnipit.github.io/shrimp-apps-script//register.html"; //
-
-      // -- CHANGE 1: ประกาศตัวแปรสำหรับเก็บ userId --
-      let liffUserId = null;
+        "https://jatnipit.github.io/shrimp-apps-script/register.html";
 
       /* ======== HELPERS ======== */
       function showStatus(msg) {
@@ -54,7 +52,7 @@
       }
       function showFrame(url) {
         document.getElementById("statusBox").style.display = "none";
-        const frame = document.getElementById("manageFrame"); //
+        const frame = document.getElementById("manageFrame");
         frame.src = url;
         frame.style.display = "block";
       }
@@ -62,33 +60,16 @@
         window.top.location.href = REGISTER_URL;
       }
 
-      /* ======== LISTEN FOR CHILD MESSAGES ======== */
-      // -- CHANGE 2: แก้ไข Event Listener ให้รองรับคำสั่ง navigate --
+      /* ======== LISTEN FOR CHILD MESSAGES (optional) ======== */
       window.addEventListener("message", (evt) => {
-        // เพื่อความปลอดภัย ควรตรวจสอบ origin ของ message
         // if (evt.origin !== new URL(GAS_URL).origin) return;
+        // if (evt.data === "redirect-to-register") redirectToRegister();
 
-        if (typeof evt.data === "object" && evt.data.action) {
-          switch (evt.data.action) {
-            case "navigate":
-              if (evt.data.page && liffUserId) {
-                const newUrl = `${GAS_URL}?page=${
-                  evt.data.page
-                }&userId=${encodeURIComponent(liffUserId)}`;
-                const frame = document.getElementById("manageFrame");
-                frame.src = newUrl; // เปลี่ยนหน้าใน iframe
-                console.log("Navigating iframe to:", newUrl);
-              }
-              break;
-
-            case "redirect-to-register":
-              redirectToRegister();
-              break;
-          }
-        } else if (
+        if (
           typeof evt.data === "string" &&
           evt.data === "redirect-to-register"
         ) {
+          console.log("Redirect command received from iframe");
           redirectToRegister();
         }
       });
@@ -97,23 +78,22 @@
       window.addEventListener("load", () => {
         showStatus("กำลังเริ่มต้น...");
         liff
-          .init({ liffId: LIFF_ID }) //
+          .init({ liffId: LIFF_ID })
           .then(() => {
             if (!liff.isLoggedIn()) {
               showStatus("กำลังเข้าสู่ระบบ LINE...");
               liff.login();
               return;
             }
-            return liff.getProfile(); //
+            return liff.getProfile();
           })
           .then((profile) => {
             if (!profile) return;
-            // -- CHANGE 3: เก็บ userId ที่ได้จาก LIFF --
-            liffUserId = profile.userId;
+            const userId = profile.userId;
 
             const manageUrl = `${GAS_URL}?page=manageMenu&userId=${encodeURIComponent(
-              liffUserId
-            )}`; //
+              userId
+            )}`;
             showFrame(manageUrl);
           })
           .catch((err) => {
