@@ -66,21 +66,15 @@
         window.top.location.href = REGISTER_PAGE_URL;
       }
 
-      // --- START: ส่วนที่แก้ไข ---
       window.addEventListener("message", (event) => {
-        // ควรตรวจสอบ event.origin เพื่อความปลอดภัย แต่ในตัวอย่างนี้จะข้ามไปก่อน
-        // if (event.origin !== new URL(GAS_URL).origin) return;
-
         const message = event.data;
 
-        // จัดการกับการ redirect ไปหน้าสมัครสมาชิก
         if (typeof message === "string" && message === "redirect-to-register") {
           console.log("Redirect command received from iframe");
           redirectToRegister();
           return;
         }
 
-        // จัดการกับการเปลี่ยนหน้าภายใน iframe
         if (typeof message === "object" && message.type === "navigate") {
           console.log("Navigation command received:", message);
           if (message.page === "order" && currentUserId) {
@@ -91,11 +85,10 @@
               price: message.data.price,
             });
             const orderUrl = `${GAS_URL}?${params}`;
-            menuFrame.src = orderUrl; // เปลี่ยน src ของ iframe
+            menuFrame.src = orderUrl;
           }
         }
       });
-      // --- END: ส่วนที่แก้ไข ---
 
       // ======== INITIALIZE =========
       window.addEventListener("load", () => {
@@ -111,11 +104,7 @@
           })
           .then((profile) => {
             if (!profile) return;
-
-            // --- START: ส่วนที่แก้ไข ---
-            currentUserId = profile.userId; // เก็บ userId ไว้ในตัวแปร
-            // --- END: ส่วนที่แก้ไข ---
-
+            currentUserId = profile.userId;
             const menuUrl = `${GAS_URL}?page=userMenu&userId=${encodeURIComponent(
               currentUserId
             )}`;
