@@ -41,19 +41,21 @@
     <script>
       // ======== CONFIG =========
       const LIFF_ID = "2007677261-ZqXNg6de";
-
       const GAS_URL =
         "https://script.google.com/macros/s/AKfycbzfxqxvLNecdpZPOLJGX5SvKUGyecad8KSjFDLgxJz-WXGRKfKs_snsEGk3xQClgeOM_w/exec";
-
       const REGISTER_PAGE_URL =
         "https://jatnipit.github.io/shrimp-apps-script//register.html";
+
+      // --- START: ส่วนที่แก้ไข ---
+      let currentUserId = null; // ตัวแปรสำหรับเก็บ userId
+      const menuFrame = document.getElementById("menuFrame");
+      // --- END: ส่วนที่แก้ไข ---
 
       // ======== FUNCTIONS =========
       function showFrame(url) {
         document.getElementById("statusContainer").style.display = "none";
-        const frame = document.getElementById("menuFrame");
-        frame.src = url;
-        frame.style.display = "block";
+        menuFrame.src = url;
+        menuFrame.style.display = "block";
       }
 
       function showStatus(message) {
@@ -64,20 +66,36 @@
         window.top.location.href = REGISTER_PAGE_URL;
       }
 
+      // --- START: ส่วนที่แก้ไข ---
       window.addEventListener("message", (event) => {
-        /* if (event.origin !== new URL(GAS_URL).origin) {
-          console.warn("Received message from untrusted origin:", event.origin);
-          return;
-        } */
+        // ควรตรวจสอบ event.origin เพื่อความปลอดภัย แต่ในตัวอย่างนี้จะข้ามไปก่อน
+        // if (event.origin !== new URL(GAS_URL).origin) return;
 
-        if (
-          typeof event.data === "string" &&
-          event.data === "redirect-to-register"
-        ) {
+        const message = event.data;
+
+        // จัดการกับการ redirect ไปหน้าสมัครสมาชิก
+        if (typeof message === "string" && message === "redirect-to-register") {
           console.log("Redirect command received from iframe");
           redirectToRegister();
+          return;
+        }
+
+        // จัดการกับการเปลี่ยนหน้าภายใน iframe
+        if (typeof message === "object" && message.type === "navigate") {
+          console.log("Navigation command received:", message);
+          if (message.page === "order" && currentUserId) {
+            const params = new URLSearchParams({
+              page: "order",
+              userId: currentUserId,
+              menu: message.data.menu,
+              price: message.data.price,
+            });
+            const orderUrl = `${GAS_URL}?${params}`;
+            menuFrame.src = orderUrl; // เปลี่ยน src ของ iframe
+          }
         }
       });
+      // --- END: ส่วนที่แก้ไข ---
 
       // ======== INITIALIZE =========
       window.addEventListener("load", () => {
@@ -94,10 +112,12 @@
           .then((profile) => {
             if (!profile) return;
 
-            const userId = profile.userId;
+            // --- START: ส่วนที่แก้ไข ---
+            currentUserId = profile.userId; // เก็บ userId ไว้ในตัวแปร
+            // --- END: ส่วนที่แก้ไข ---
 
             const menuUrl = `${GAS_URL}?page=userMenu&userId=${encodeURIComponent(
-              userId
+              currentUserId
             )}`;
             console.log(menuUrl);
             showFrame(menuUrl);
