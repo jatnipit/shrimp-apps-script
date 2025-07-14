@@ -1,121 +1,79 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8" />
-    <title>เมนูอาหาร</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <style>
-      body,
-      html {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        font-family: Arial, sans-serif;
-        background: #f5f5f5;
-      }
-      .status-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 100%;
-      }
-      #statusMessage {
-        font-size: 18px;
-        color: #666;
-      }
-      iframe {
-        border: none;
-        width: 100%;
-        height: 100%;
-        display: none;
-      }
-    </style>
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-  </head>
-  <body>
-    <div id="statusContainer" class="status-container">
-      <div id="statusMessage">กำลังโหลดข้อมูล...</div>
-    </div>
-    <iframe id="menuFrame"></iframe>
+<head>
+  <meta charset="UTF-8" />
+  <title>เมนูอาหาร</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; font-family: Arial, sans-serif; background: #f5f5f5; }
+    .status-container { display: flex; align-items: center; justify-content: center; height: 100%; }
+    #statusMessage { font-size: 18px; color: #666; }
+    iframe { border: none; width: 100%; height: 100%; display: none; }
+  </style>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+  <div id="statusContainer" class="status-container">
+    <div id="statusMessage">กำลังโหลดข้อมูล...</div>
+  </div>
+  <iframe id="menuFrame"></iframe>
 
-    <script>
-      // ======== CONFIG =========
-      const LIFF_ID = "2007677261-ZqXNg6de";
-      const GAS_URL =
-        "https://script.google.com/macros/s/AKfycbzfxqxvLNecdpZPOLJGX5SvKUGyecad8KSjFDLgxJz-WXGRKfKs_snsEGk3xQClgeOM_w/exec";
-      const REGISTER_PAGE_URL =
-        "https://jatnipit.github.io/shrimp-apps-script//register.html";
+  <script>
+    const LIFF_ID = "2007677261-ZqXNg6de";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzfxqxvLNecdpZPOLJGX5SvKUGyecad8KSjFDLgxJz-WXGRKfKs_snsEGk3xQClgeOM_w/exec";
+    const REGISTER_PAGE_URL = "https://jatnipit.github.io/shrimp-apps-script/register.html";
+    let currentUserId = null;
 
-      // --- START: ส่วนที่แก้ไข ---
-      let currentUserId = null; // ตัวแปรสำหรับเก็บ userId
-      const menuFrame = document.getElementById("menuFrame");
-      // --- END: ส่วนที่แก้ไข ---
+    function showFrame(url) {
+      document.getElementById("statusContainer").style.display = "none";
+      const frame = document.getElementById("menuFrame");
+      frame.src = url;
+      frame.style.display = "block";
+    }
 
-      // ======== FUNCTIONS =========
-      function showFrame(url) {
-        document.getElementById("statusContainer").style.display = "none";
-        menuFrame.src = url;
-        menuFrame.style.display = "block";
+    function redirectToRegister() {
+      window.location.href = REGISTER_PAGE_URL;
+    }
+
+    window.addEventListener("message", (event) => {
+      const message = event.data;
+      if (message === "redirect-to-register") {
+        redirectToRegister();
+        return;
       }
 
-      function showStatus(message) {
-        document.getElementById("statusMessage").textContent = message;
+      if (typeof message === "object" && message.type === "navigate" && message.page === "order") {
+        const params = new URLSearchParams({
+          page: "order",
+          userId: message.userId,
+          menu: message.menu,
+          price: message.price,
+        });
+        const fullUrl = `${message.baseUrl}?${params}`;
+        window.location.href = fullUrl;
       }
+    });
 
-      function redirectToRegister() {
-        window.top.location.href = REGISTER_PAGE_URL;
-      }
-
-      window.addEventListener("message", (event) => {
-        const message = event.data;
-
-        if (typeof message === "string" && message === "redirect-to-register") {
-          console.log("Redirect command received from iframe");
-          redirectToRegister();
-          return;
-        }
-
-        if (typeof message === "object" && message.type === "navigate") {
-          console.log("Navigation command received:", message);
-          if (message.page === "order" && currentUserId) {
-            const params = new URLSearchParams({
-              page: "order",
-              userId: currentUserId,
-              menu: message.data.menu,
-              price: message.data.price,
-            });
-            const orderUrl = `${GAS_URL}?${params}`;
-            menuFrame.src = orderUrl;
+    window.addEventListener("load", () => {
+      liff.init({ liffId: LIFF_ID })
+        .then(() => {
+          if (!liff.isLoggedIn()) {
+            liff.login();
+            return;
           }
-        }
-      });
-
-      // ======== INITIALIZE =========
-      window.addEventListener("load", () => {
-        liff
-          .init({ liffId: LIFF_ID })
-          .then(() => {
-            showStatus("กำลังตรวจสอบการเข้าสู่ระบบ...");
-            if (!liff.isLoggedIn()) {
-              liff.login();
-              return;
-            }
-            return liff.getProfile();
-          })
-          .then((profile) => {
-            if (!profile) return;
-            currentUserId = profile.userId;
-            const menuUrl = `${GAS_URL}?page=userMenu&userId=${encodeURIComponent(
-              currentUserId
-            )}`;
-            console.log(menuUrl);
-            showFrame(menuUrl);
-          })
-          .catch((err) => {
-            console.error("LIFF Initialization Error:", err);
-            showStatus("เกิดข้อผิดพลาดในการโหลดแอป");
-          });
-      });
-    </script>
-  </body>
+          return liff.getProfile();
+        })
+        .then((profile) => {
+          if (!profile) return;
+          currentUserId = profile.userId;
+          const menuUrl = `${GAS_URL}?page=userMenu&userId=${encodeURIComponent(currentUserId)}`;
+          showFrame(menuUrl);
+        })
+        .catch((err) => {
+          console.error("LIFF init error:", err);
+          document.getElementById("statusMessage").textContent = "เกิดข้อผิดพลาดในการโหลด";
+        });
+    });
+  </script>
+</body>
 </html>
