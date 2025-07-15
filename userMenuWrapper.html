@@ -16,7 +16,7 @@
   <div id="statusContainer" class="status-container">
     <div id="statusMessage">กำลังโหลดข้อมูล...</div>
   </div>
-  <iframe id="menuFrame"></iframe>
+  <iframe id="menuFrame" allow="geolocation"></iframe>
 
   <script>
     const LIFF_ID = "2007677261-ZqXNg6de";
@@ -35,22 +35,56 @@
       window.location.href = REGISTER_PAGE_URL;
     }
 
+    // window.addEventListener("message", (event) => {
+    //   const message = event.data;
+    //   if (message === "redirect-to-register") {
+    //     redirectToRegister();
+    //     return;
+    //   }
+
+    //   if (typeof message === "object" && message.type === "navigate" && message.page === "order") {
+    //     const params = new URLSearchParams({
+    //       page: "order",
+    //       userId: message.userId,
+    //       menu: message.menu,
+    //       price: message.price,
+    //     });
+    //     const fullUrl = `${message.baseUrl}?${params}`;
+    //     window.location.href = fullUrl;
+    //   }
+    // });
+
     window.addEventListener("message", (event) => {
       const message = event.data;
-      if (message === "redirect-to-register") {
-        redirectToRegister();
-        return;
-      }
-
-      if (typeof message === "object" && message.type === "navigate" && message.page === "order") {
+      const frame = document.getElementById("menuFrame");
+      const GITHUB_BASE_URL = "https://jatnipit.github.io/shrimp-apps-script/";
+    
+      if (typeof message === "object" && message.type === "navigate") {
         const params = new URLSearchParams({
-          page: "order",
+          page: message.page,
           userId: message.userId,
           menu: message.menu,
           price: message.price,
+          address: message.address,
+          lat: message.lat,
+          lng: message.lng,
         });
-        const fullUrl = `${message.baseUrl}?${params}`;
-        window.location.href = fullUrl;
+    
+        if (message.baseUrl) {
+            const fullUrl = `${message.baseUrl}?${params}`;
+            frame.src = fullUrl;
+        }
+        return;
+      }
+    
+      if (typeof message === "object" && message.type === "payment-success") {
+        window.location.href = `${GITHUB_BASE_URL}paymentSuccess.html`;
+        return;
+      }
+    
+      if (message === "redirect-to-register") {
+        redirectToRegister();
+        return;
       }
     });
 
