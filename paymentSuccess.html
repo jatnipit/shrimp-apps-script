@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Payment Success</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+      body {
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div style="text-align: center">
+      <h1>ชำระเงินเสร็จสิ้น</h1>
+      <p>การชำระเงินของคุณได้ดำเนินการเรียบร้อยแล้ว</p>
+      <p>จะกลับไปยังช่องแชทใน 5 วินาที</p>
+    </div>
+
+    <script>
+      const LIFF_ID = "2007677261-6rPmzgWw";
+
+      window.onload = function () {
+        liff
+          .init({ liffId: LIFF_ID })
+          .then(() => {
+            setTimeout(() => {
+              liff.closeWindow();
+            }, 5000);
+          })
+          .catch((error) => {
+            console.error("LIFF initialization failed", error);
+          });
+      };
+    </script>
+  </body>
+</html>
