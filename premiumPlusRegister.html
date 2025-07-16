@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>สมัครสมาชิกพรีเมียมพลัส</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, sans-serif;
+        background-color: #f0f2f5;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+      }
+      .container {
+        background-color: white;
+        padding: 30px 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 400px;
+        width: 90%;
+      }
+      h1 {
+        color: #1c1e21;
+        margin-bottom: 15px;
+        font-size: 1.5rem;
+      }
+      p {
+        color: #606770;
+        margin-bottom: 25px;
+        line-height: 1.5;
+      }
+      .confirm-btn {
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 12px 20px;
+        font-size: 1rem;
+        font-weight: bold;
+        width: 100%;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+      .confirm-btn:hover {
+        background-color: #0056b3;
+      }
+      .confirm-btn:disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+      }
+      .status {
+        margin-top: 15px;
+        font-weight: bold;
+      }
+      .status.success {
+        color: #28a745;
+      }
+      .status.error {
+        color: #dc3545;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="appContainer" class="container" style="display: none">
+      <h1>สมัครสมาชิกระดับพรีเมียมพลัส</h1>
+      <p>
+        ยืนยันการสมัครเพื่อรับสิทธิพิเศษและเมนูใหม่สำหรับสมาชิกระดับพรีเมียมพลัสโดยเฉพาะ
+      </p>
+      <button
+        id="confirmBtn"
+        class="confirm-btn"
+        onclick="registerPremiumPlus()"
+      >
+        ยืนยันการสมัคร
+      </button>
+      <div id="status" class="status"></div>
+    </div>
+
+    <script>
+      const LIFF_ID = "2007677261-jAndPDrM";
+      const GAS_URL =
+        "https://script.google.com/macros/s/AKfycbzfxqxvLNecdpZPOLJGX5SvKUGyecad8KSjFDLgxJz-WXGRKfKs_snsEGk3xQClgeOM_w/exec";
+
+      let userId = null;
+      const confirmBtn = document.getElementById("confirmBtn");
+      const statusEl = document.getElementById("status");
+      const appContainer = document.getElementById("appContainer");
+
+      async function registerPremiumPlus() {
+        if (!userId) {
+          alert("ไม่พบข้อมูลผู้ใช้, กรุณาลองใหม่อีกครั้ง");
+          return;
+        }
+
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = "กำลังดำเนินการ...";
+        statusEl.textContent = "";
+
+        try {
+          const response = await fetch(GAS_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "registerpremiumplus",
+              userId: userId,
+            }),
+          });
+
+          const result = await response.json();
+
+          if (result.status === "success") {
+            statusEl.textContent = "สมัครสมาชิกสำเร็จ!";
+            statusEl.className = "status success";
+            alert("สมัครสมาชิกระดับพรีเมียมพลัสสำเร็จแล้ว!");
+            liff.closeWindow();
+          } else {
+            throw new Error(result.message || "การสมัครล้มเหลว");
+          }
+        } catch (error) {
+          console.error("Registration failed:", error);
+          statusEl.textContent = "เกิดข้อผิดพลาด: " + error.message;
+          statusEl.className = "status error";
+          alert("เกิดข้อผิดพลาดในการสมัครสมาชิก");
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = "ยืนยันการสมัคร";
+        }
+      }
+
+      async function main() {
+        try {
+          await liff.init({ liffId: LIFF_ID });
+          if (!liff.isLoggedIn()) {
+            liff.login();
+            return;
+          }
+          const profile = await liff.getProfile();
+          userId = profile.userId;
+          appContainer.style.display = "block";
+        } catch (error) {
+          console.error("LIFF Initialization failed:", error);
+          document.body.innerHTML =
+            "<h1>เกิดข้อผิดพลาด กรุณาเปิดในแอป LINE</h1>";
+        }
+      }
+
+      main();
+    </script>
+  </body>
+</html>
