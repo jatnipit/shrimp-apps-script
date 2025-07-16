@@ -54,23 +54,39 @@
     </div>
 
     <script>
-      const LIFF_ID = "2007677261-jAndPDrM"; // ใส่ LIFF ID สำหรับหน้า Premium Plus
+      const LIFF_ID = "2007677261-jAndPDrM";
       const GAS_URL =
         "https://script.google.com/macros/s/AKfycbzfxqxvLNecdpZPOLJGX5SvKUGyecad8KSjFDLgxJz-WXGRKfKs_snsEGk3xQClgeOM_w/exec";
       const viewContainer = document.getElementById("viewContainer");
       let userId = null;
 
-      async function callApi(action, data = {}) {
-        const payload = { action, userId, ...data };
-        const response = await fetch(GAS_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
+      function callApi(action, data = {}) {
+        return new Promise((resolve, reject) => {
+          const callbackName =
+            "jsonp_callback_" + Math.round(100000 * Math.random());
+          window[callbackName] = (responseData) => {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            resolve(responseData);
+          };
+
+          const script = document.createElement("script");
+          const params = new URLSearchParams({
+            action: action,
+            userId: userId,
+            callback: callbackName,
+            ...data,
+          });
+
+          script.src = `${GAS_URL}?${params.toString()}`;
+          script.onerror = () => {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            reject(new Error("JSONP request failed"));
+          };
+
+          document.body.appendChild(script);
         });
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-        return await response.json();
       }
 
       function showPremiumRegisterPage() {
@@ -87,7 +103,7 @@
         registerButton.textContent = "กำลังดำเนินการ...";
 
         try {
-          const result = await callApi("registerpremiumplus");
+          const result = await callApi("registerPremiumPlus");
           if (result.status === "success") {
             alert("สมัครสมาชิกระดับพรีเมียมพลัสสำเร็จ!");
             setTimeout(() => liff.closeWindow(), 1500);
