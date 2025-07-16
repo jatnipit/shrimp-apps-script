@@ -4,134 +4,127 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>สมัครสมาชิกพรีเมียมพลัส</title>
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
       body {
         margin: 0;
-        font-family: system-ui, -apple-system, sans-serif;
-        background-color: #f0f2f5;
+        padding: 0;
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+        height: 100vh;
         display: flex;
         justify-content: center;
         align-items: center;
-        min-height: 100vh;
       }
       .container {
-        background-color: white;
-        padding: 30px 40px;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        background: white;
+        padding: 40px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         text-align: center;
         max-width: 400px;
         width: 90%;
       }
-      h1 {
-        color: #1c1e21;
-        margin-bottom: 15px;
-        font-size: 1.5rem;
+      h2 {
+        color: #333;
+        margin-bottom: 30px;
       }
-      p {
-        color: #606770;
-        margin-bottom: 25px;
-        line-height: 1.5;
-      }
-      .confirm-btn {
-        background-color: #007bff;
+      .register-btn {
+        background: #007bff;
         color: white;
         border: none;
+        padding: 15px 30px;
         border-radius: 8px;
-        padding: 12px 20px;
-        font-size: 1rem;
-        font-weight: bold;
-        width: 100%;
+        font-size: 16px;
         cursor: pointer;
-        transition: background-color 0.2s;
+        width: 100%;
       }
-      .confirm-btn:hover {
-        background-color: #0056b3;
-      }
-      .confirm-btn:disabled {
+      .register-btn:disabled {
         background-color: #ccc;
-        cursor: not-allowed;
       }
-      .status {
-        margin-top: 15px;
-        font-weight: bold;
-      }
-      .status.success {
-        color: #28a745;
-      }
-      .status.error {
-        color: #dc3545;
+      .loading {
+        font-size: 18px;
+        color: #666;
       }
     </style>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   </head>
   <body>
-    <div id="appContainer" class="container" style="display: none">
-      <h1>สมัครสมาชิกระดับพรีเมียมพลัส</h1>
-      <p>
-        ยืนยันการสมัครเพื่อรับสิทธิพิเศษและเมนูใหม่สำหรับสมาชิกระดับพรีเมียมพลัสโดยเฉพาะ
-      </p>
-      <button
-        id="confirmBtn"
-        class="confirm-btn"
-        onclick="registerPremiumPlus()"
-      >
-        ยืนยันการสมัคร
-      </button>
-      <div id="status" class="status"></div>
+    <div id="viewContainer">
+      <div class="loading">กำลังโหลด...</div>
     </div>
 
     <script>
-      const LIFF_ID = "2007677261-jAndPDrM";
+      const LIFF_ID = "2007677261-jAndPDrM"; // ใส่ LIFF ID สำหรับหน้า Premium Plus
       const GAS_URL =
         "https://script.google.com/macros/s/AKfycbzfxqxvLNecdpZPOLJGX5SvKUGyecad8KSjFDLgxJz-WXGRKfKs_snsEGk3xQClgeOM_w/exec";
-
+      const viewContainer = document.getElementById("viewContainer");
       let userId = null;
-      const confirmBtn = document.getElementById("confirmBtn");
-      const statusEl = document.getElementById("status");
-      const appContainer = document.getElementById("appContainer");
+
+      async function callApi(action, data = {}) {
+        const payload = { action, userId, ...data };
+        const response = await fetch(GAS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        return await response.json();
+      }
+
+      function showPremiumRegisterPage() {
+        viewContainer.innerHTML = `
+            <div class="container">
+                <h2>สมัครสมาชิกพรีเมียมพลัส</h2>
+                <button class="register-btn" onclick="registerPremiumPlus()">ยืนยันการสมัคร</button>
+            </div>`;
+      }
 
       async function registerPremiumPlus() {
-        if (!userId) {
-          alert("ไม่พบข้อมูลผู้ใช้, กรุณาลองใหม่อีกครั้ง");
-          return;
-        }
-
-        confirmBtn.disabled = true;
-        confirmBtn.textContent = "กำลังดำเนินการ...";
-        statusEl.textContent = "";
+        const registerButton = document.querySelector(".register-btn");
+        registerButton.disabled = true;
+        registerButton.textContent = "กำลังดำเนินการ...";
 
         try {
-          const response = await fetch(GAS_URL, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              action: "registerpremiumplus",
-              userId: userId,
-            }),
-          });
-
-          const result = await response.json();
-
+          const result = await callApi("registerpremiumplus");
           if (result.status === "success") {
-            statusEl.textContent = "สมัครสมาชิกสำเร็จ!";
-            statusEl.className = "status success";
-            alert("สมัครสมาชิกระดับพรีเมียมพลัสสำเร็จแล้ว!");
-            liff.closeWindow();
+            alert("สมัครสมาชิกระดับพรีเมียมพลัสสำเร็จ!");
+            setTimeout(() => liff.closeWindow(), 1500);
           } else {
             throw new Error(result.message || "การสมัครล้มเหลว");
           }
-        } catch (error) {
-          console.error("Registration failed:", error);
-          statusEl.textContent = "เกิดข้อผิดพลาด: " + error.message;
-          statusEl.className = "status error";
+        } catch (err) {
+          console.error("Registration error:", err);
           alert("เกิดข้อผิดพลาดในการสมัครสมาชิก");
-          confirmBtn.disabled = false;
-          confirmBtn.textContent = "ยืนยันการสมัคร";
+          registerButton.disabled = false;
+          registerButton.textContent = "ยืนยันการสมัคร";
         }
       }
 
-      async function main() {
+      async function checkUserRole() {
+        try {
+          const result = await callApi("getUserRole");
+          if (result.status === "success") {
+            if (result.role === "premium plus") {
+              alert("คุณเป็นสมาชิกพรีเมียมพลัสอยู่แล้ว");
+              viewContainer.innerHTML =
+                '<div class="loading">คุณเป็นสมาชิกพรีเมียมพลัสอยู่แล้ว</div>';
+              setTimeout(() => liff.closeWindow(), 1500);
+            } else {
+              showPremiumRegisterPage();
+            }
+          } else {
+            throw new Error(result.message || "Failed to get user role");
+          }
+        } catch (err) {
+          console.error("Error checking role:", err);
+          viewContainer.innerHTML =
+            '<div class="loading">เกิดข้อผิดพลาดในการตรวจสอบสิทธิ์</div>';
+        }
+      }
+
+      window.addEventListener("load", async () => {
         try {
           await liff.init({ liffId: LIFF_ID });
           if (!liff.isLoggedIn()) {
@@ -140,15 +133,13 @@
           }
           const profile = await liff.getProfile();
           userId = profile.userId;
-          appContainer.style.display = "block";
-        } catch (error) {
-          console.error("LIFF Initialization failed:", error);
-          document.body.innerHTML =
-            "<h1>เกิดข้อผิดพลาด กรุณาเปิดในแอป LINE</h1>";
+          await checkUserRole();
+        } catch (err) {
+          console.error("LIFF Initialization error:", err);
+          viewContainer.innerHTML =
+            '<div class="loading">เกิดข้อผิดพลาด กรุณาเปิดในแอป LINE</div>';
         }
-      }
-
-      main();
+      });
     </script>
   </body>
 </html>
