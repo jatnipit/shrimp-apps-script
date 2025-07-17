@@ -36,7 +36,7 @@
     <div id="statusContainer" class="status-container">
       <div id="statusMessage">กำลังโหลดข้อมูล...</div>
     </div>
-    <iframe id="menuFrame"></iframe>
+    <iframe id="menuFrame" allow="geolocation"></iframe>
 
     <script>
       const LIFF_ID = "2007677261-ZqXNg6de";
@@ -58,26 +58,43 @@
       }
 
       window.addEventListener("message", (event) => {
+        if (
+          event.origin !== new URL(GAS_URL).origin &&
+          event.origin !== "https://jatnipit.github.io"
+        ) {
+          return;
+        }
+
         const message = event.data;
+        const frame = document.getElementById("menuFrame");
+
         if (message === "redirect-to-register") {
           redirectToRegister();
           return;
         }
 
-        if (
-          typeof message === "object" &&
-          message.type === "navigate" &&
-          message.page === "order"
-        ) {
-          const params = new URLSearchParams({
-            page: "order",
-            userId: message.userId,
-            menu: message.menu,
-            price: message.price,
-          });
-          const fullUrl = `${message.baseUrl}?${params}`;
-          // window.location.href = fullUrl;
-          showFrame(fullUrl);
+        if (typeof message === "object" && message.type === "navigate") {
+          let params;
+          if (message.page === "order") {
+            params = new URLSearchParams({
+              page: "order",
+              userId: message.userId,
+              menu: message.menu,
+              price: message.price,
+            });
+            frame.src = `${message.baseUrl}?${params.toString()}`;
+          } else if (message.page === "payment") {
+            params = new URLSearchParams({
+              page: "payment",
+              userId: message.userId,
+              menu: message.menu,
+              price: message.price,
+              address: message.address,
+              lat: message.lat,
+              lng: message.lng,
+            });
+            frame.src = `${message.baseUrl}?${params.toString()}`;
+          }
         }
       });
 
