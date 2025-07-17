@@ -94,6 +94,9 @@
               lng: message.lng,
             });
             frame.src = `${message.baseUrl}?${params.toString()}`;
+          } else if (message.page === "payment-success") {
+            window.location.href =
+              "https://jatnipit.github.io/shrimp-apps-script/paymentSuccess.html";
           }
         }
       });
