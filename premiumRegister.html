@@ -97,25 +97,16 @@
             </div>`;
       }
 
-      async function registerPremiumPlus() {
+      function registerPremiumPlus() {
         const registerButton = document.querySelector(".register-btn");
         registerButton.disabled = true;
-        registerButton.textContent = "กำลังดำเนินการ...";
+        registerButton.textContent = "กำลังนำทางไปหน้าชำระเงิน...";
 
-        try {
-          const result = await callApi("registerPremiumPlus");
-          if (result.status === "success") {
-            alert("สมัครสมาชิกระดับพรีเมียมพลัสสำเร็จ!");
-            setTimeout(() => liff.closeWindow(), 1500);
-          } else {
-            throw new Error(result.message || "การสมัครล้มเหลว");
-          }
-        } catch (err) {
-          console.error("Registration error:", err);
-          alert("เกิดข้อผิดพลาดในการสมัครสมาชิก");
-          registerButton.disabled = false;
-          registerButton.textContent = "ยืนยันการสมัคร";
-        }
+        const paymentUrl = `https://jatnipit.github.io/shrimp-apps-script/premiumPayment.html?userId=${encodeURIComponent(
+          userId
+        )}`;
+
+        window.location.href = paymentUrl;
       }
 
       async function checkUserRole() {
