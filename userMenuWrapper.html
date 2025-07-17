@@ -76,7 +76,8 @@
             price: message.price,
           });
           const fullUrl = `${message.baseUrl}?${params}`;
-          window.location.href = fullUrl;
+          // window.location.href = fullUrl;
+          showFrame(fullUrl);
         }
       });
 
