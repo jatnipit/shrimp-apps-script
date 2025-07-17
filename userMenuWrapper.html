@@ -58,12 +58,12 @@
       }
 
       window.addEventListener("message", (event) => {
-        if (
+        /* if (
           event.origin !== new URL(GAS_URL).origin &&
           event.origin !== "https://jatnipit.github.io"
         ) {
           return;
-        }
+        } */
 
         const message = event.data;
         const frame = document.getElementById("menuFrame");
