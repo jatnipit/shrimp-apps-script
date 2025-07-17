@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Payment Success</title>
+    <title>สั่งซื้อสำเร็จ</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
       body {
@@ -12,31 +12,95 @@
         justify-content: center;
         align-items: center;
         margin: 0;
+        font-family: system-ui, sans-serif;
+        background-color: #f0f2f5;
+      }
+      .container {
+        text-align: center;
+        background-color: white;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #28a745;
+        margin-bottom: 15px;
+      }
+      p {
+        color: #606770;
+        font-size: 1.1rem;
       }
     </style>
   </head>
   <body>
-    <div style="text-align: center">
-      <h1>ชำระเงินเสร็จสิ้น</h1>
-      <p>การชำระเงินของคุณได้ดำเนินการเรียบร้อยแล้ว</p>
-      <p>จะกลับไปยังช่องแชทใน 5 วินาที</p>
+    <div class="container">
+      <h1>สั่งซื้อสำเร็จ!</h1>
+      <p id="status">การชำระเงินของคุณเรียบร้อยแล้ว</p>
     </div>
 
     <script>
       const LIFF_ID = "2007677261-6rPmzgWw";
+      const GAS_URL =
+        "https://script.google.com/macros/s/AKfycbzfxqxvLNecdpZPOLJGX5SvKUGyecad8KSjFDLgxJz-WXGRKfKs_snsEGk3xQClgeOM_w/exec";
 
-      window.onload = function () {
-        liff
-          .init({ liffId: LIFF_ID })
-          .then(() => {
-            setTimeout(() => {
-              liff.closeWindow();
-            }, 5000);
-          })
-          .catch((error) => {
-            console.error("LIFF initialization failed", error);
+      function callApi(action, data) {
+        return new Promise((resolve, reject) => {
+          const callbackName =
+            "jsonp_callback_" + Math.round(100000 * Math.random());
+          window[callbackName] = (responseData) => {
+            delete window[callbackName];
+            document.body.removeChild(script);
+            resolve(responseData);
+          };
+
+          const script = document.createElement("script");
+          const params = new URLSearchParams({
+            action,
+            callback: callbackName,
+            ...data,
           });
-      };
+          script.src = `${GAS_URL}?${params.toString()}`;
+          script.onerror = () => reject(new Error("JSONP request failed"));
+          document.body.appendChild(script);
+        });
+      }
+
+      window.addEventListener("load", async () => {
+        try {
+          await liff.init({ liffId: LIFF_ID });
+
+          const urlParams = new URLSearchParams(window.location.search);
+          const userId = urlParams.get("userId");
+          const menu = urlParams.get("menu");
+          const price = urlParams.get("price");
+          const address = urlParams.get("address");
+
+          if (!userId) {
+            document.getElementById("status").textContent = "ข้อมูลไม่ถูกต้อง";
+            return;
+          }
+
+          const messageText = `✅ ยืนยันการสั่งซื้อ\n\n- เมนู: ${menu}\n- ราคา: ${price} บาท\n- ที่อยู่จัดส่ง: ${address}\n\nเราได้รับการสั่งซื้อของคุณแล้ว และจะรีบดำเนินการจัดส่งโดยเร็วที่สุด ขอบคุณครับ/ค่ะ!`;
+          const messagesToSend = [{ type: "text", text: messageText }];
+
+          await callApi("sendMessages", {
+            userId: userId,
+            messages: JSON.stringify(messagesToSend),
+          });
+
+          document.getElementById("status").textContent =
+            "จะกลับไปยังช่องแชทใน 5 วินาที...";
+          setTimeout(() => {
+            if (liff.isInClient()) {
+              liff.closeWindow();
+            }
+          }, 5000);
+        } catch (error) {
+          console.error("Operation failed", error);
+          document.getElementById("status").textContent =
+            "เกิดข้อผิดพลาด: " + error.message;
+        }
+      });
     </script>
   </body>
 </html>
