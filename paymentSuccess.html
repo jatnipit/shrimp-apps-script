@@ -50,7 +50,14 @@
           window[callbackName] = (responseData) => {
             delete window[callbackName];
             document.body.removeChild(script);
-            resolve(responseData);
+
+            if (responseData && responseData.status === "success") {
+              resolve(responseData);
+            } else {
+              const errorMessage =
+                responseData.message || "เกิดข้อผิดพลาดไม่ทราบสาเหตุ";
+              reject(new Error(errorMessage));
+            }
           };
 
           const script = document.createElement("script");
@@ -97,6 +104,7 @@
           }, 5000);
         } catch (error) {
           console.error("Operation failed", error);
+          // แสดงข้อความ Error บนหน้าจอให้ผู้ใช้เห็น
           document.getElementById("status").textContent =
             "เกิดข้อผิดพลาด: " + error.message;
         }
