@@ -34,6 +34,8 @@
     <script>
       const GAS_URL =
         "https://script.google.com/macros/s/AKfycbzfxqxvLNecdpZPOLJGX5SvKUGyecad8KSjFDLgxJz-WXGRKfKs_snsEGk3xQClgeOM_w/exec";
+      const SUCCESS_PAGE_URL =
+        "https://jatnipit.github.io/shrimp-apps-script/premiumPaymentSuccess.html";
 
       function showFrame(url) {
         document.getElementById("statusBox").style.display = "none";
@@ -41,6 +43,16 @@
         frame.src = url;
         frame.style.display = "block";
       }
+
+      window.addEventListener("message", (event) => {
+        if (event.origin !== new URL(GAS_URL).origin) {
+          return;
+        }
+
+        if (event.data && event.data.type === "payment-success") {
+          window.location.href = SUCCESS_PAGE_URL;
+        }
+      });
 
       window.addEventListener("load", () => {
         const urlParams = new URLSearchParams(window.location.search);
