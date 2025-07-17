@@ -95,8 +95,16 @@
             });
             frame.src = `${message.baseUrl}?${params.toString()}`;
           } else if (message.page === "payment-success") {
-            window.top.location.href =
-              "https://jatnipit.github.io/shrimp-apps-script/paymentSuccess.html";
+            params = new URLSearchParams({
+              userId: message.userId,
+              menu: message.menu,
+              price: message.price,
+              address: message.address,
+            });
+            const url =
+              "https://jatnipit.github.io/shrimp-apps-script/paymentSuccess.html?" +
+              params.toString();
+            window.top.location.href = url;
           }
         }
       });
