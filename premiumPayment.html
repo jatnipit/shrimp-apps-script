@@ -116,6 +116,8 @@
       </div>
     </div>
     <script>
+      const GAS_URL =
+        "https://script.google.com/macros/s/AKfycbzfxqxvLNecdpZPOLJGX5SvKUGyecad8KSjFDLgxJz-WXGRKfKs_snsEGk3xQClgeOM_w/exec";
       const urlParams = new URLSearchParams(window.location.search);
       const userId = urlParams.get("userId");
 
@@ -159,6 +161,7 @@
         reader.readAsDataURL(fileToUpload);
         reader.onload = () => {
           const payload = {
+            action: "savePremiumPayment",
             fileData: {
               fileName: fileToUpload.name,
               mimeType: fileToUpload.type,
@@ -166,10 +169,25 @@
             },
             userId: userId,
           };
-          google.script.run
-            .withSuccessHandler(onUploadSuccess)
-            .withFailureHandler(onUploadFailure)
-            .savePremiumPayment(payload);
+
+          fetch(GAS_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.status === "success") {
+                onUploadSuccess(data.receiptUrl);
+              } else {
+                throw new Error(data.message || "เกิดข้อผิดพลาดจากเซิร์ฟเวอร์");
+              }
+            })
+            .catch((error) => {
+              onUploadFailure(error);
+            });
         };
       }
 
