@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ต่ออายุสมาชิกพรีเมียม</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: sans-serif;
+        background: #f5f5f5;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      .container {
+        background: white;
+        padding: 40px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 400px;
+        width: 90%;
+      }
+      h2 {
+        color: #333;
+        margin-bottom: 30px;
+      }
+      .renew-btn {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 15px 30px;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        width: 100%;
+      }
+      .renew-btn:disabled {
+        background-color: #ccc;
+      }
+      .loading {
+        font-size: 18px;
+        color: #666;
+      }
+    </style>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  </head>
+  <body>
+    <div id="viewContainer"><div class="loading">กำลังโหลด...</div></div>
+
+    <script>
+      const LIFF_ID = "2007677261-D3AZXQwy";
+      const GAS_URL =
+        "https://script.google.com/macros/s/AKfycbzfxqxvLNecdpZPOLJGX5SvKUGyecad8KSjFDLgxJz-WXGRKfKs_snsEGk3xQClgeOM_w/exec";
+      const viewContainer = document.getElementById("viewContainer");
+      let userId = null;
+
+      function showRenewPage() {
+        viewContainer.innerHTML = `
+            <div class="container">
+                <h2>ต่ออายุสมาชิกพรีเมียม</h2>
+                <button class="renew-btn" onclick="navigateToPayment()">ดำเนินการต่ออายุ</button>
+            </div>`;
+      }
+
+      function navigateToPayment() {
+        const renewButton = document.querySelector(".renew-btn");
+        renewButton.disabled = true;
+        renewButton.textContent = "กำลังนำทาง...";
+        const paymentUrl = `https://jatnipit.github.io/shrimp-apps-script/premiumRenewWrapper.html?userId=${encodeURIComponent(
+          userId
+        )}`;
+        window.location.href = paymentUrl;
+      }
+
+      async function initialize() {
+        try {
+          await liff.init({ liffId: LIFF_ID });
+          if (!liff.isLoggedIn()) {
+            liff.login();
+            return;
+          }
+          const profile = await liff.getProfile();
+          userId = profile.userId;
+
+          showRenewPage();
+        } catch (err) {
+          console.error("LIFF Error:", err);
+          viewContainer.innerHTML =
+            '<div class="loading">เกิดข้อผิดพลาด กรุณาเปิดในแอป LINE</div>';
+        }
+      }
+
+      window.addEventListener("load", initialize);
+    </script>
+  </body>
+</html>

@@ -2,7 +2,7 @@
 <html lang="th">
   <head>
     <meta charset="UTF-8" />
-    <title>ชำระเงินค่าสมาชิกพรีเมียม</title>
+    <title>ต่ออายุสมาชิกพรีเมียม</title>
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <style>
       html,
@@ -35,7 +35,7 @@
       const GAS_URL =
         "https://script.google.com/macros/s/AKfycbzfxqxvLNecdpZPOLJGX5SvKUGyecad8KSjFDLgxJz-WXGRKfKs_snsEGk3xQClgeOM_w/exec";
       const SUCCESS_PAGE_URL =
-        "https://jatnipit.github.io/shrimp-apps-script/premiumPaymentSuccess.html";
+        "https://jatnipit.github.io/shrimp-apps-script/premiumRenewSuccess.html";
 
       function showFrame(url) {
         document.getElementById("statusBox").style.display = "none";
@@ -45,11 +45,7 @@
       }
 
       window.addEventListener("message", (event) => {
-        if (event.origin !== new URL(GAS_URL).origin) {
-          return;
-        }
-
-        if (event.data && event.data.type === "payment-success") {
+        if (event.data && event.data.type === "renewal-success") {
           window.location.href = SUCCESS_PAGE_URL;
         }
       });
@@ -57,14 +53,12 @@
       window.addEventListener("load", () => {
         const urlParams = new URLSearchParams(window.location.search);
         const userId = urlParams.get("userId");
-
         if (!userId) {
           document.getElementById("statusBox").textContent =
             "เกิดข้อผิดพลาด: ไม่พบข้อมูลผู้ใช้";
           return;
         }
-
-        const paymentUrl = `${GAS_URL}?page=paymentPremium&userId=${encodeURIComponent(
+        const paymentUrl = `${GAS_URL}?page=premiumRenewPage&userId=${encodeURIComponent(
           userId
         )}`;
         showFrame(paymentUrl);
