@@ -72,7 +72,7 @@
         const paymentUrl = `https://jatnipit.github.io/shrimp-apps-script/premiumRenewWrapper.html?userId=${encodeURIComponent(
           userId
         )}`;
-        window.location.href = paymentUrl;
+        window.top.location.href = paymentUrl;
       }
 
       async function initialize() {

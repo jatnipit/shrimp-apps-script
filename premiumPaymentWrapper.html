@@ -46,7 +46,7 @@
 
       window.addEventListener("message", (event) => {
         if (event.data && event.data.type === "premium-payment-success") {
-          window.location.href = SUCCESS_PAGE_URL;
+          window.top.location.href = SUCCESS_PAGE_URL;
         }
       });
 
