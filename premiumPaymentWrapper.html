@@ -45,12 +45,8 @@
       }
 
       window.addEventListener("message", (event) => {
-        if (event.origin !== new URL(GAS_URL).origin) {
-          return;
-        }
-
         if (event.data && event.data.type === "payment-success") {
-          window.location.href = SUCCESS_PAGE_URL;
+          window.top.location.href = SUCCESS_PAGE_URL;
         }
       });
 
