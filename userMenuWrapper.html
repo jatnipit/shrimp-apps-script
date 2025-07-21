@@ -58,13 +58,6 @@
       }
 
       window.addEventListener("message", (event) => {
-        /* if (
-          event.origin !== new URL(GAS_URL).origin &&
-          event.origin !== "https://jatnipit.github.io"
-        ) {
-          return;
-        } */
-
         const message = event.data;
         const frame = document.getElementById("menuFrame");
 
@@ -100,6 +93,8 @@
               menu: message.menu,
               price: message.price,
               address: message.address,
+              lat: message.lat,
+              lng: message.lng,
             });
             const url =
               "https://jatnipit.github.io/shrimp-apps-script/paymentSuccess.html?" +
