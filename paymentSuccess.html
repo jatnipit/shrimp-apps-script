@@ -81,14 +81,12 @@
           const price = urlParams.get("price");
           const address = urlParams.get("address");
           const displayName = urlParams.get("displayName") || "ไม่ได้ระบุชื่อ";
-          const phoneNumber = urlParams.get("phoneNumber") || "ไม่ได้ระบุเบอร์";
 
           if (!userId) {
             document.getElementById("status").textContent = "ข้อมูลไม่ถูกต้อง";
             return;
           }
 
-          // --- Message 1: Text Summary ---
           const orderSummaryText = `✅ ยืนยันการสั่งซื้อ\n\n- เมนู: ${menu}\n- ราคา: ${price} บาท\n- ที่อยู่จัดส่ง: ${address}\n\nเราได้รับการสั่งซื้อของคุณแล้ว และจะรีบดำเนินการจัดส่งโดยเร็วที่สุด ขอบคุณครับ/ค่ะ!`;
           const orderSummaryMessages = [
             { type: "text", text: orderSummaryText },
@@ -99,7 +97,6 @@
             messages: JSON.stringify(orderSummaryMessages),
           });
 
-          // --- Message 2: Flex Message ---
           const placeOrderFlexMessage = {
             type: "flex",
             altText: "สรุปรายการสั่งซื้อ",
@@ -162,13 +159,6 @@
                       {
                         type: "text",
                         text: displayName,
-                        wrap: true,
-                        size: "sm",
-                        color: "#555555",
-                      },
-                      {
-                        type: "text",
-                        text: phoneNumber,
                         wrap: true,
                         size: "sm",
                         color: "#555555",
