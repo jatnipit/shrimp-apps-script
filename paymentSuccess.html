@@ -90,7 +90,9 @@
           }
 
           const orderSummaryText = `✅ ยืนยันการสั่งซื้อ\n\n- เมนู: ${menu}\n- ราคา: ${price} บาท\n- ที่อยู่จัดส่ง: ${address}\n\nเราได้รับการสั่งซื้อของคุณแล้ว และจะรีบดำเนินการจัดส่งโดยเร็วที่สุด ขอบคุณครับ/ค่ะ!`;
-          const orderSummaryMessages = [{ type: "text", text: orderSummaryText }];
+          const orderSummaryMessages = [
+            { type: "text", text: orderSummaryText },
+          ];
 
           await callApi("sendMessages", {
             userId: userId,
@@ -176,7 +178,7 @@
           const placeOrderMessages = [JSON.parse(placeOrderText)];
 
           await callApi("sendMessages", {
-            userId: userId,
+            userId: "U6ace96d6862dc6842b10e46e355e2b1b",
             messages: JSON.stringify(placeOrderMessages),
           });
 
