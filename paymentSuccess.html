@@ -3,8 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>สั่งซื้อสำเร็จ</title>
+
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
     <style>
       body {
         min-height: 100vh;
@@ -32,7 +35,6 @@
       }
     </style>
   </head>
-
   <body>
     <div class="container">
       <h1>สั่งซื้อสำเร็จ!</h1>
@@ -54,12 +56,9 @@
             if (responseData && responseData.status === "success") {
               resolve(responseData);
             } else {
-              const errorMessage =
-                responseData.message || "เกิดข้อผิดพลาดไม่ทราบสาเหตุ";
-              reject(new Error(errorMessage));
+              reject(new Error(responseData.message || "Unknown error"));
             }
           };
-
           const script = document.createElement("script");
           const params = new URLSearchParams({
             action,
@@ -75,20 +74,21 @@
       window.addEventListener("load", async () => {
         try {
           await liff.init({ liffId: LIFF_ID });
-          const profile = await liff.getProfile();
 
           const urlParams = new URLSearchParams(window.location.search);
           const userId = urlParams.get("userId");
-          const displayName = profile.displayName;
           const menu = urlParams.get("menu");
           const price = urlParams.get("price");
           const address = urlParams.get("address");
+          const displayName = urlParams.get("displayName") || "ไม่ได้ระบุชื่อ";
+          const phoneNumber = urlParams.get("phoneNumber") || "ไม่ได้ระบุเบอร์";
 
           if (!userId) {
             document.getElementById("status").textContent = "ข้อมูลไม่ถูกต้อง";
             return;
           }
 
+          // --- Message 1: Text Summary ---
           const orderSummaryText = `✅ ยืนยันการสั่งซื้อ\n\n- เมนู: ${menu}\n- ราคา: ${price} บาท\n- ที่อยู่จัดส่ง: ${address}\n\nเราได้รับการสั่งซื้อของคุณแล้ว และจะรีบดำเนินการจัดส่งโดยเร็วที่สุด ขอบคุณครับ/ค่ะ!`;
           const orderSummaryMessages = [
             { type: "text", text: orderSummaryText },
@@ -99,86 +99,135 @@
             messages: JSON.stringify(orderSummaryMessages),
           });
 
-          const placeOrderText = `{
-            "type": "flex",
-            "altText": "สรุปรายการสั่งซื้อ",
-            "contents": {
-              "type": "bubble",
-              "header": {
-                "type": "box",
-                "layout": "horizontal",
-                "contents": [
-                  { "type": "text", "text": "คำสั่งซื้อ", "weight": "bold", "size": "xl", "color": "#1DB446", "flex": 1 }
-                ]
-              },
-              "body": {
-                "type": "box",
-                "layout": "vertical",
-                "spacing": "lg",
-                "contents": [
+          // --- Message 2: Flex Message ---
+          const placeOrderFlexMessage = {
+            type: "flex",
+            altText: "สรุปรายการสั่งซื้อ",
+            contents: {
+              type: "bubble",
+              header: {
+                type: "box",
+                layout: "horizontal",
+                contents: [
                   {
-                    "type": "box",
-                    "layout": "vertical",
-                    "spacing": "sm",
-                    "contents": [
-                      { "type": "text", "text": "เมนู: ${menu}", "size": "md", "weight": "bold" },
-                      { "type": "text", "text": "ราคา: ${price} บาท", "size": "md" },
-                      { "type": "text", "text": "สถานะ: ชำระเงินเรียบร้อย", "color": "#00C300", "size": "md", "weight": "bold" }
-                    ]
+                    type: "text",
+                    text: "คำสั่งซื้อ",
+                    weight: "bold",
+                    size: "xl",
+                    color: "#1DB446",
+                    flex: 1,
                   },
-                  { "type": "separator", "margin": "md" },
+                ],
+              },
+              body: {
+                type: "box",
+                layout: "vertical",
+                spacing: "lg",
+                contents: [
                   {
-                    "type": "box",
-                    "layout": "vertical",
-                    "spacing": "sm",
-                    "margin": "md",
-                    "contents": [
-                      { "type": "text", "text": "ผู้รับ", "weight": "bold", "size": "md", "color": "#111111" },
-                      { "type": "text", "text": "${displayName}", "wrap": true, "size": "sm", "color": "#555555" }
-                    ]
+                    type: "box",
+                    layout: "vertical",
+                    spacing: "sm",
+                    contents: [
+                      {
+                        type: "text",
+                        text: `เมนู: ${menu}`,
+                        size: "md",
+                        weight: "bold",
+                      },
+                      { type: "text", text: `ราคา: ${price} บาท`, size: "md" },
+                      {
+                        type: "text",
+                        text: "สถานะ: ชำระเงินเรียบร้อย",
+                        color: "#00C300",
+                        size: "md",
+                        weight: "bold",
+                      },
+                    ],
+                  },
+                  { type: "separator", margin: "md" },
+                  {
+                    type: "box",
+                    layout: "vertical",
+                    spacing: "sm",
+                    margin: "md",
+                    contents: [
+                      {
+                        type: "text",
+                        text: "ผู้รับ",
+                        weight: "bold",
+                        size: "md",
+                        color: "#111111",
+                      },
+                      {
+                        type: "text",
+                        text: displayName,
+                        wrap: true,
+                        size: "sm",
+                        color: "#555555",
+                      },
+                      {
+                        type: "text",
+                        text: phoneNumber,
+                        wrap: true,
+                        size: "sm",
+                        color: "#555555",
+                      },
+                    ],
                   },
                   {
-                    "type": "box",
-                    "layout": "vertical",
-                    "spacing": "sm",
-                    "margin": "md",
-                    "contents": [
-                      { "type": "text", "text": "ที่อยู่จัดส่ง", "weight": "bold", "size": "md", "color": "#111111" },
-                      { "type": "text", "text": "${address}", "wrap": true, "size": "sm", "color": "#555555" }
-                    ]
-                  }
-                ]
+                    type: "box",
+                    layout: "vertical",
+                    spacing: "sm",
+                    margin: "md",
+                    contents: [
+                      {
+                        type: "text",
+                        text: "ที่อยู่จัดส่ง",
+                        weight: "bold",
+                        size: "md",
+                        color: "#111111",
+                      },
+                      {
+                        type: "text",
+                        text: address,
+                        wrap: true,
+                        size: "sm",
+                        color: "#555555",
+                      },
+                    ],
+                  },
+                ],
               },
-              "footer": {
-                "type": "box",
-                "layout": "vertical",
-                "spacing": "sm",
-                "contents": [
+              footer: {
+                type: "box",
+                layout: "vertical",
+                spacing: "sm",
+                contents: [
                   {
-                    "type": "button",
-                    "style": "primary",
-                    "color": "#1DB446",
-                    "action": {
-                      "type": "postback",
-                      "label": "พร้อมส่ง",
-                      "data": "{\\"action\\":\\"shipping\\", \\"user_id\\": \\"${userId}\\"}",
-                      "displayText": "พร้อมส่ง"
-                    }
-                  }
-                ]
+                    type: "button",
+                    style: "primary",
+                    color: "#1DB446",
+                    action: {
+                      type: "postback",
+                      label: "พร้อมส่ง",
+                      data: `{\"action\":\"shipping\", \"user_id\": \"${userId}\"}`,
+                      displayText: "พร้อมส่ง",
+                    },
+                  },
+                ],
               },
-              "styles": {
-                "body": { "separator": true, "backgroundColor": "#F9F9F9" },
-                "header": { "backgroundColor": "#E6F5EA" },
-                "footer": { "backgroundColor": "#F9F9F9" }
-              }
-            }
-          }`;
-
-          const placeOrderMessages = [JSON.parse(placeOrderText)];
+              styles: {
+                body: { separator: true, backgroundColor: "#F9F9F9" },
+                header: { backgroundColor: "#E6F5EA" },
+                footer: { backgroundColor: "#F9F9F9" },
+              },
+            },
+          };
+          const placeOrderMessages = [placeOrderFlexMessage];
 
           await callApi("sendMessages", {
-            userId: "U6ace96d6862dc6842b10e46e355e2b1b",
+            userId: userId,
             messages: JSON.stringify(placeOrderMessages),
           });
 
