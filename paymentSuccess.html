@@ -80,7 +80,7 @@
           const menu = urlParams.get("menu");
           const price = urlParams.get("price");
           const address = urlParams.get("address");
-          const displayName = urlParams.get("displayName") || "ไม่ได้ระบุชื่อ";
+          const displayName = urlParams.get("displayName");
 
           if (!userId) {
             document.getElementById("status").textContent = "ข้อมูลไม่ถูกต้อง";

@@ -60,11 +60,7 @@
         window.top.location.href = REGISTER_URL;
       }
 
-      /* ======== LISTEN FOR CHILD MESSAGES (optional) ======== */
       window.addEventListener("message", (evt) => {
-        // if (evt.origin !== new URL(GAS_URL).origin) return;
-        // if (evt.data === "redirect-to-register") redirectToRegister();
-
         if (
           typeof evt.data === "string" &&
           evt.data === "redirect-to-register"
@@ -74,7 +70,6 @@
         }
       });
 
-      /* ======== MAIN ======== */
       window.addEventListener("load", () => {
         showStatus("กำลังเริ่มต้น...");
         liff

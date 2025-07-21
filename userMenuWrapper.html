@@ -44,7 +44,9 @@
         "https://script.google.com/macros/s/AKfycbzfxqxvLNecdpZPOLJGX5SvKUGyecad8KSjFDLgxJz-WXGRKfKs_snsEGk3xQClgeOM_w/exec";
       const REGISTER_PAGE_URL =
         "https://jatnipit.github.io/shrimp-apps-script/register.html";
+
       let currentUserId = null;
+      let currentDisplayName = null;
 
       function showFrame(url) {
         document.getElementById("statusContainer").style.display = "none";
@@ -95,6 +97,7 @@
               address: message.address,
               lat: message.lat,
               lng: message.lng,
+              displayName: currentDisplayName,
             });
             const url =
               "https://jatnipit.github.io/shrimp-apps-script/paymentSuccess.html?" +
@@ -117,6 +120,7 @@
           .then((profile) => {
             if (!profile) return;
             currentUserId = profile.userId;
+            currentDisplayName = profile.displayName;
             const menuUrl = `${GAS_URL}?page=userMenu&userId=${encodeURIComponent(
               currentUserId
             )}`;
