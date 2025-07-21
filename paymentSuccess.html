@@ -217,10 +217,12 @@
             },
           };
 
+          const shortAddress = address.substring(0, 100);
+
           const locationMessage = {
             type: "location",
             title: "ที่อยู่สำหรับจัดส่ง",
-            address: address,
+            address: shortAddress,
             latitude: parseFloat(lat),
             longitude: parseFloat(lng),
           };
