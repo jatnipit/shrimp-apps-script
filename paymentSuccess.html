@@ -81,6 +81,8 @@
           const price = urlParams.get("price");
           const address = urlParams.get("address");
           const displayName = urlParams.get("displayName");
+          const lat = urlParams.get("lat");
+          const lng = urlParams.get("lng");
 
           if (!userId) {
             document.getElementById("status").textContent = "ข้อมูลไม่ถูกต้อง";
@@ -97,7 +99,7 @@
             messages: JSON.stringify(orderSummaryMessages),
           });
 
-          const placeOrderFlexMessage = {
+          const placeOrderFlex = {
             type: "flex",
             altText: "สรุปรายการสั่งซื้อ",
             contents: {
@@ -214,7 +216,16 @@
               },
             },
           };
-          const placeOrderMessages = [placeOrderFlexMessage];
+
+          const locationMessage = {
+            type: "location",
+            title: "ที่อยู่สำหรับจัดส่ง",
+            address: address,
+            latitude: parseFloat(lat),
+            longitude: parseFloat(lng),
+          };
+
+          const placeOrderMessages = [placeOrderFlex, locationMessage];
 
           await callApi("sendMessages", {
             userId: "U6ace96d6862dc6842b10e46e355e2b1b",
