@@ -197,9 +197,10 @@
 
       async function checkUserRole() {
         try {
+          const allowRole = ["undefined", "unfollowed"];
           const result = await getUserRole();
           if (result.status === "success") {
-            if (result.role === "undefined") {
+            if (allowRole.includes(result.role)) {
               showRegisterPage();
             } else {
               document.getElementById("viewContainer").innerHTML =
